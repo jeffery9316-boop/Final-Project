@@ -2,17 +2,27 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>宿主介面</title>
+    <title>使用者資料</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
-<body>
-    <div class="main-container">
-        <h2>宿主資訊</h2>
+<body class="shopping-body">
 
-        <a href="{{ url_for('shopping') }}"><button>返回購物頁面</button></a>
+    <!-- 左側欄（精簡版） -->
+    <div class="sidebar">
+        <h2 class="sidebar-title">購物頁面</h2>
 
-        <p>這裡顯示使用者名稱、歷史訂單等資料。</p>
+        <p class="sidebar-user">歡迎，{{ username }}</p>
+
+        <a href="{{ url_for('shopping') }}"><button class="sidebar-btn">返回購物頁面</button></a>
+        <a href="{{ url_for('logout') }}"><button class="sidebar-btn logout-btn">登出</button></a>
     </div>
+
+    <!-- 主內容 -->
+    <div class="content-area">
+        <h2 style="color:white;">使用者資料</h2>
+        <p style="color:white;">（這裡可以顯示使用者詳細資訊）</p>
+    </div>
+
 </body>
 </html>

@@ -104,8 +104,8 @@ def api_login():
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.json
-    account = data.get("account")   # 登入帳號（唯一）
-    name = data.get("name")         # 使用者名字（顯示用）
+    account = data.get("account")
+    name = data.get("name")
     password = data.get("password")
 
     # 密碼 hash
@@ -115,12 +115,14 @@ def api_register():
     cursor = conn.cursor()
 
     try:
-        cursor.execute("INSERT INTO Users (account, name, password_hash) VALUES (?, ?, ?)",
-                       (account, name, password_hash))
+        cursor.execute(
+            "INSERT INTO Users (account, name, password_hash) VALUES (?, ?, ?)",
+            (account, name, password_hash)
+        )
         conn.commit()
         conn.close()
         return jsonify({"status": "success", "message": "註冊成功！"})
-    
+
     except sqlite3.IntegrityError:
         conn.close()
         return jsonify({"status": "fail", "message": "帳號已被使用"})
