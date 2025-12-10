@@ -75,6 +75,17 @@ body::before {
     font-size: 14px;
 }
 
+/* ===============================
+   購物頁面專用：取消登入頁的置中
+================================ */
+.shopping-body {
+    display: block !important; /* 取消 flex 置中 */
+    height: 100vh;
+    background-image: url("../img/login_bg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
 
 
 /* ===============================
@@ -142,28 +153,25 @@ body::before {
 
 
 /* ===============================
-   主內容區（右側）
+   左側功能欄 Sidebar
 ================================ */
-.content-area {
-    margin-left: 240px; /* 空出 Sidebar 寬度 */
-    padding: 30px;
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background: rgba(0,0,0,0.55);
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-title {
     color: white;
-}
-
-
-
-/* ===============================
-   其他共用樣式（若之後需要）
-================================ */
-.main-container {
-    text-align: center;
-    margin-top: 40px;
-}
-
-.nav-buttons button {
-    margin: 10px;
-    padding: 10px 20px;
-    font-size: 16px;
+    margin-bottom: 20px;
+    font-size: 22px;
+    border-bottom: 1px solid white;
+    padding-bottom: 10px;
 }
 
 .sidebar-user {
@@ -171,3 +179,115 @@ body::before {
     font-size: 18px;
     margin-bottom: 20px;
 }
+
+/* 按鈕樣式 */
+.sidebar-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.sidebar-btn:hover {
+    background: #45a049;
+}
+
+/* 登出按鈕 */
+.logout-btn {
+    background: #d9534f;
+}
+
+.logout-btn:hover {
+    background: #c9302c;
+}
+
+/* ===============================
+   主內容區（右側）
+================================ */
+.content-area {
+    margin-left: 240px; /* 空出 Sidebar 寬度 */
+    padding: 30px;
+    color: white;
+    overflow-y: auto; /* 允許滾動 */
+}
+
+/* ===============================
+   商品展示區
+================================ */
+.items-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding-bottom: 50px;
+}
+
+.item-card {
+    border: 1px solid #fff;
+    padding: 15px;
+    width: 200px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    color: white;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    height: 620px; /* 固定高度 */
+}
+
+.item-description {
+    flex-grow: 1;
+    margin: 10px 0;
+}
+
+.item-img {
+    width: 200px;
+    height: 200px;
+    border-radius: 5px;
+}
+
+.qty-control {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.qty-control button {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.qty-control button:hover {
+    background-color: #555;
+}
+
+.qty-control input {
+    width: 50px;
+    height: 28px;
+    text-align: center;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #000;
+    padding: 0;
+    box-sizing: border-box;
+}
+

@@ -3,7 +3,8 @@ import sqlite3
 import hashlib
 from database.database import init_db, load_items
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_folder='static')
 app.secret_key = "your_secret_key_here"   # ★ Session 必須使用
 
 # ============================================================
@@ -125,6 +126,53 @@ def api_register():
     except sqlite3.IntegrityError:
         conn.close()
         return jsonify({"status": "fail", "message": "帳號已被使用"})
+
+
+# ============================================================
+# API：商品列表
+# ============================================================
+
+@app.route('/api/items', methods=['GET'])
+def api_items():
+    conn = sqlite3.connect("database/app.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT item_id, name, rarity, price, effect_description, image_path, stock FROM Items")
+    items = cursor.fetchall()
+    conn.close()
+
+    result = []
+    for item in items:
+        result.append({
+            "item_id": item[0],
+            "name": item[1],
+            "rarity": item[2],
+            "price": item[3],
+            "effect_description": item[4],
+            "image_path": item[5],
+            "stock": item[6]
+
+        })
+    return jsonify(result)
+
+# ============================================================
+# API：加入購物車
+# ============================================================
+
+@app.route('/api/cart/add', methods=['POST'])
+def api_cart_add():
+    data = request.json
+    user_id = data.get("user_id")
+    item_id = data.get("item_id")
+    quantity = data.get("quantity", 1)
+
+    conn = sqlite3.connect("database/app.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Cart (user_id, item_id, quantity) VALUES (?, ?, ?)",
+                   (user_id, item_id, quantity))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "success", "message": "已加入購物車"})
 
 
 # ============================================================
