@@ -155,6 +155,60 @@ def api_items():
     return jsonify(result)
 
 # ============================================================
+# API：商品篩選
+# ============================================================
+
+@app.route('/api/filter_items', methods=['POST'])
+def api_filter_items():
+    data = request.json
+    rarities = data.get("rarities", [])
+    strength = int(data.get("strength", 0))
+    intelligence = int(data.get("intelligence", 0))
+    luck = int(data.get("luck", 0))
+
+    conn = sqlite3.connect("database/app.db")
+    cursor = conn.cursor()
+
+    query = """
+        SELECT item_id, name, rarity, price, effect_description, image_path, stock,
+               strength_bonus, intelligence_bonus, luck_bonus
+        FROM Items
+        WHERE strength_bonus >= ?
+        AND intelligence_bonus >= ?
+        AND luck_bonus >= ?
+    """
+
+    params = [strength, intelligence, luck]
+
+    if rarities:
+        placeholders = ",".join("?" * len(rarities))
+        query += f" AND rarity IN ({placeholders})"
+        params.extend(rarities)
+
+    cursor.execute(query, params)
+    items = cursor.fetchall()
+    conn.close()
+
+    result = []
+    for item in items:
+        result.append({
+            "item_id": item[0],
+            "name": item[1],
+            "rarity": item[2],
+            "price": item[3],
+            "effect_description": item[4],
+            "image_path": item[5],
+            "stock": item[6],
+            "strength_bonus": item[7],
+            "intelligence_bonus": item[8],
+            "luck_bonus": item[9],
+        })
+
+    return jsonify(result)
+
+
+
+# ============================================================
 # API：加入購物車
 # ============================================================
 

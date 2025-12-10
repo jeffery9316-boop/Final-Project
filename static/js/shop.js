@@ -1,7 +1,52 @@
+// ================================
+// 讀取全部商品
+// ================================
 async function loadItems() {
     const res = await fetch("/api/items");
     const items = await res.json();
+    renderItems(items);
+}
 
+// ================================
+// 套用篩選器
+// ================================
+async function applyFilter() {
+    // ================================
+    // 處理稀有度複選 + 全部選項
+    // ================================
+    let rarities = [];
+    const allCheck = document.getElementById("rarity-all");
+
+    if (!allCheck.checked) {
+        const rarityNodes = document.querySelectorAll(".rarity-check:checked");
+        rarities = Array.from(rarityNodes).map(c => c.value);
+    }
+    // 如果「全部」被勾選 → rarities 保持空陣列，代表不篩選稀有度
+
+    const strength = document.getElementById("filter-strength").value || 0;
+    const intelligence = document.getElementById("filter-intelligence").value || 0;
+    const luck = document.getElementById("filter-luck").value || 0;
+
+    const res = await fetch("/api/filter_items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            rarities,
+            strength,
+            intelligence,
+            luck
+        })
+    });
+
+    const filteredItems = await res.json();
+    renderItems(filteredItems);
+}
+
+
+// ================================
+// 渲染商品卡片 (含購物車按鈕)
+// ================================
+function renderItems(items) {
     const grid = document.getElementById("itemsGrid");
     grid.innerHTML = "";
 
@@ -15,13 +60,15 @@ async function loadItems() {
             <p>稀有度：${item.rarity}</p>
             <p>價格：${item.price}</p>
             <p>庫存：${item.stock}</p>
+
             <p class="item-description">${item.effect_description}</p>
+
             <div class="qty-control">
                 <button onclick="changeQty(${item.item_id}, -1)">－</button>
                 <input type="text" id="qty-${item.item_id}" value="1">
                 <button onclick="changeQty(${item.item_id}, 1)">＋</button>
             </div>
-            
+
             <button onclick="addToCart(${item.item_id})">加入購物車</button>
         `;
 
@@ -29,9 +76,12 @@ async function loadItems() {
     });
 }
 
+// ================================
+// 加入購物車
+// ================================
 async function addToCart(itemId) {
-    const qty = document.getElementById(`qty-${itemId}`).value;
-    const userId = localStorage.getItem("user_id"); // 從登入時存的 user_id 取出
+    const qty = parseInt(document.getElementById(`qty-${itemId}`).value);
+    const userId = localStorage.getItem("user_id");
 
     if (!userId) {
         alert("請先登入！");
@@ -45,7 +95,7 @@ async function addToCart(itemId) {
         body: JSON.stringify({
             user_id: userId,
             item_id: itemId,
-            quantity: parseInt(qty)
+            quantity: qty
         })
     });
 
@@ -53,6 +103,9 @@ async function addToCart(itemId) {
     alert(data.message);
 }
 
+// ================================
+// 數量增減按鈕
+// ================================
 function changeQty(itemId, delta) {
     const input = document.getElementById(`qty-${itemId}`);
     let value = parseInt(input.value) || 1;
@@ -61,5 +114,38 @@ function changeQty(itemId, delta) {
     input.value = value;
 }
 
-document.addEventListener("DOMContentLoaded", loadItems);
 
+// ================================
+// 「全部」與個別 checkbox 控制邏輯
+// ================================
+function setupRarityCheckboxLogic() {
+    const allCheck = document.getElementById("rarity-all");
+    const rarityChecks = document.querySelectorAll(".rarity-check");
+
+    // 點選「全部」 → 勾選/取消所有項目
+    allCheck.addEventListener("change", () => {
+        rarityChecks.forEach(c => c.checked = allCheck.checked);
+    });
+
+    // 個別選項改變時 → 更新“全部”的狀態
+    rarityChecks.forEach(c => {
+        c.addEventListener("change", () => {
+            const allSelected = Array.from(rarityChecks).every(x => x.checked);
+            allCheck.checked = allSelected;
+        });
+    });
+}
+
+
+// ================================
+// 頁面載入時初始化
+// ================================
+document.addEventListener("DOMContentLoaded", () => {
+    loadItems();
+
+    // 綁定篩選器按鈕
+    document.getElementById("filter-btn").addEventListener("click", applyFilter);
+
+    // 啟動 checkbox 控制邏輯
+    setupRarityCheckboxLogic();
+});
