@@ -28,20 +28,24 @@ def shopping():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    # ★ 將登入使用者的姓名傳給 shopping.html
+    # ★ 傳送登入使用者的姓名
     return render_template("shopping.html", username=session.get('name'))
 
 @app.route('/shoppingcart')
 def shoppingcart():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template("shoppingCart.html")
+    
+    # ★ 傳送登入姓名到購物車頁面
+    return render_template("shoppingCart.html", username=session.get('name'))
 
 @app.route('/user')
 def user():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template("user.html")
+    
+    # ★ 傳送登入姓名到使用者頁面
+    return render_template("user.html", username=session.get('name'))
 
 # ============================================================
 # 登出功能
