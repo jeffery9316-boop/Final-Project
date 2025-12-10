@@ -4,21 +4,33 @@
     <meta charset="UTF-8">
     <title>購物頁面</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script defer src="{{ url_for('static', filename='js/shop.js') }}"></script>
 </head>
 
-<body>
-    <div class="main-container">
-        <h2>購物頁面</h2>
+
+<body class="shopping-body">
+
+    <!-- 左側欄 Sidebar -->
+    <div class="sidebar">
+        <h2 class="sidebar-title">購物頁面</h2>
+
+        <!-- 顯示登入姓名 -->
+        <p class="sidebar-user">歡迎，{{ username }}</p>
 
         <!-- 導覽按鈕 -->
-        <div class="nav-buttons">
-            <a href="{{ url_for('shoppingcart') }}"><button>購物車</button></a>
-            <a href="{{ url_for('user') }}"><button>宿主</button></a>
-        </div>
-
-        <br>
-
-        
+        <a href="{{ url_for('shoppingcart') }}"><button class="sidebar-btn">購物車</button></a>
+        <a href="{{ url_for('user') }}"><button class="sidebar-btn">宿主</button></a>
+        <a href="{{ url_for('logout') }}"><button class="sidebar-btn logout-btn">登出</button></a>
     </div>
+
+    <!-- 右側主內容區 -->
+    <div class="content-area">
+        <h2 style="color: white;">歡迎來到購物頁面</h2>
+
+        <!-- 商品展示區 -->
+        <div id="itemsGrid" class="items-grid"></div>
+    </div>
+
 </body>
+
 </html>

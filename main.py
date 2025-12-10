@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import sqlite3
 import hashlib
 from database.database import init_db, load_items
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
+app.secret_key = "your_secret_key_here"   # ★ Session 必須使用
 
 # ============================================================
 # 頁面路由
@@ -24,15 +25,37 @@ def register():
 
 @app.route('/shopping')
 def shopping():
-    return render_template("shopping.html")
+    # 如果尚未登入 → 不能訪問
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # ★ 傳送登入使用者的姓名
+    return render_template("shopping.html", username=session.get('name'))
 
 @app.route('/shoppingcart')
 def shoppingcart():
-    return render_template("shoppingCart.html")
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # ★ 傳送登入姓名到購物車頁面
+    return render_template("shoppingCart.html", username=session.get('name'))
 
 @app.route('/user')
 def user():
-    return render_template("user.html")
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # ★ 傳送登入姓名到使用者頁面
+    return render_template("user.html", username=session.get('name'))
+
+# ============================================================
+# 登出功能
+# ============================================================
+
+@app.route('/logout')
+def logout():
+    session.clear()   # 清除登入狀態
+    return redirect(url_for('login'))
 
 
 # ============================================================
@@ -42,7 +65,7 @@ def user():
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
-    account = data.get("account")   # 使用者輸入的帳號
+    account = data.get("account")
     password = data.get("password")
 
     # 密碼 hash
@@ -50,12 +73,19 @@ def api_login():
 
     conn = sqlite3.connect("database/app.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT user_id, account, name FROM Users WHERE account=? AND password_hash=?", 
-                   (account, password_hash))
+    cursor.execute(
+        "SELECT user_id, account, name FROM Users WHERE account=? AND password_hash=?",
+        (account, password_hash)
+    )
     user = cursor.fetchone()
     conn.close()
 
     if user:
+        # ★ 記住登入狀態
+        session['user_id'] = user[0]
+        session['account'] = user[1]
+        session['name'] = user[2]
+
         return jsonify({
             "status": "success",
             "message": "登入成功",
@@ -96,6 +126,51 @@ def api_register():
         return jsonify({"status": "fail", "message": "帳號已被使用"})
 
 
+# ============================================================
+# API：商品列表
+# ============================================================
+
+@app.route('/api/items', methods=['GET'])
+def api_items():
+    conn = sqlite3.connect("database/app.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT item_id, name, rarity, price, effect_description, image_path, stock FROM Items")
+    items = cursor.fetchall()
+    conn.close()
+
+    result = []
+    for item in items:
+        result.append({
+            "item_id": item[0],
+            "name": item[1],
+            "rarity": item[2],
+            "price": item[3],
+            "effect_description": item[4],
+            "image_path": item[5],
+            "stock": item[6]
+
+        })
+    return jsonify(result)
+
+# ============================================================
+# API：加入購物車
+# ============================================================
+
+@app.route('/api/cart/add', methods=['POST'])
+def api_cart_add():
+    data = request.json
+    user_id = data.get("user_id")
+    item_id = data.get("item_id")
+    quantity = data.get("quantity", 1)
+
+    conn = sqlite3.connect("database/app.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Cart (user_id, item_id, quantity) VALUES (?, ?, ?)",
+                   (user_id, item_id, quantity))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "success", "message": "已加入購物車"})
 
 
 # ============================================================
