@@ -1,36 +1,10 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 import sqlite3
-import os
+import hashlib
+from database.database import init_db, load_items
+
 
 app = Flask(__name__)
-
-# ============================================================
-# 初始化資料庫
-# ============================================================
-def init_user_db():
-    # 若沒有 database 資料夾先建立
-    if not os.path.exists("database"):
-        os.makedirs("database")
-
-    # 建立 user.db
-    conn = sqlite3.connect("database/user.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
-            account TEXT UNIQUE,
-            password TEXT
-        );
-    """)
-    conn.commit()
-    conn.close()
-
-# 啟動時初始化
-init_user_db()
-
-
 
 # ============================================================
 # 頁面路由
@@ -61,7 +35,6 @@ def user():
     return render_template("user.html")
 
 
-
 # ============================================================
 # API：登入
 # ============================================================
@@ -69,17 +42,27 @@ def user():
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
-    account = data.get("account")
+    account = data.get("account")   # 使用者輸入的帳號
     password = data.get("password")
 
-    conn = sqlite3.connect("database/user.db")
+    # 密碼 hash
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    conn = sqlite3.connect("database/app.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE account=? AND password=?", (account, password))
+    cursor.execute("SELECT user_id, account, name FROM Users WHERE account=? AND password_hash=?", 
+                   (account, password_hash))
     user = cursor.fetchone()
     conn.close()
 
     if user:
-        return jsonify({"status": "success", "message": "登入成功"})
+        return jsonify({
+            "status": "success",
+            "message": "登入成功",
+            "user_id": user[0],
+            "account": user[1],
+            "name": user[2]
+        })
     else:
         return jsonify({"status": "fail", "message": "帳號或密碼錯誤"})
 
@@ -91,16 +74,19 @@ def api_login():
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.json
-    username = data.get("username")
-    account = data.get("account")
+    account = data.get("account")   # 登入帳號（唯一）
+    name = data.get("name")         # 使用者名字（顯示用）
     password = data.get("password")
 
-    conn = sqlite3.connect("database/user.db")
+    # 密碼 hash
+    password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    conn = sqlite3.connect("database/app.db")
     cursor = conn.cursor()
 
     try:
-        cursor.execute("INSERT INTO users (username, account, password) VALUES (?, ?, ?)",
-                       (username, account, password))
+        cursor.execute("INSERT INTO Users (account, name, password_hash) VALUES (?, ?, ?)",
+                       (account, name, password_hash))
         conn.commit()
         conn.close()
         return jsonify({"status": "success", "message": "註冊成功！"})
@@ -110,9 +96,14 @@ def api_register():
         return jsonify({"status": "fail", "message": "帳號已被使用"})
 
 
+
+
 # ============================================================
 # 啟動 Flask
 # ============================================================
 
 if __name__ == "__main__":
+    init_db()       # 建立表格
+    load_items()    # 匯入道具
+    print("資料庫初始化 + 道具匯入完成！")
     app.run(debug=True)
