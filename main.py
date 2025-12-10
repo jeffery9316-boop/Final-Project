@@ -4,15 +4,15 @@ import os
 
 app = Flask(__name__)
 
-
-
-# =====================
-# 資料庫初始化
-# =====================
+# ============================================================
+# 初始化資料庫
+# ============================================================
 def init_user_db():
+    # 若沒有 database 資料夾先建立
     if not os.path.exists("database"):
         os.makedirs("database")
 
+    # 建立 user.db
     conn = sqlite3.connect("database/user.db")
     cursor = conn.cursor()
 
@@ -27,14 +27,19 @@ def init_user_db():
     conn.commit()
     conn.close()
 
+# 啟動時初始化
 init_user_db()
 
 
 
-# =====================
+# ============================================================
 # 頁面路由
-# =====================
+# ============================================================
+
 @app.route('/')
+def index():
+    return redirect(url_for('login'))
+
 @app.route('/login')
 def login():
     return render_template("login.html")
@@ -43,11 +48,24 @@ def login():
 def register():
     return render_template("register.html")
 
+@app.route('/shopping')
+def shopping():
+    return render_template("shopping.html")
+
+@app.route('/shoppingcart')
+def shoppingcart():
+    return render_template("shoppingCart.html")
+
+@app.route('/user')
+def user():
+    return render_template("user.html")
 
 
-# =====================
+
+# ============================================================
 # API：登入
-# =====================
+# ============================================================
+
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.json
@@ -66,9 +84,10 @@ def api_login():
         return jsonify({"status": "fail", "message": "帳號或密碼錯誤"})
 
 
-# =====================
+# ============================================================
 # API：註冊
-# =====================
+# ============================================================
+
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.json
@@ -84,16 +103,16 @@ def api_register():
                        (username, account, password))
         conn.commit()
         conn.close()
-
         return jsonify({"status": "success", "message": "註冊成功！"})
-
+    
     except sqlite3.IntegrityError:
         conn.close()
         return jsonify({"status": "fail", "message": "帳號已被使用"})
 
 
-# =====================
+# ============================================================
 # 啟動 Flask
-# =====================
+# ============================================================
+
 if __name__ == "__main__":
     app.run(debug=True)
