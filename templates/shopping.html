@@ -7,7 +7,6 @@
     <script defer src="{{ url_for('static', filename='js/shop.js') }}"></script>
 </head>
 
-
 <body class="shopping-body">
 
     <!-- 左側欄 Sidebar -->
@@ -21,9 +20,37 @@
         <a href="{{ url_for('shoppingcart') }}"><button class="sidebar-btn">購物車</button></a>
         <a href="{{ url_for('user') }}"><button class="sidebar-btn">宿主</button></a>
         <a href="{{ url_for('logout') }}"><button class="sidebar-btn logout-btn">登出</button></a>
+
+        <hr style="border: 1px solid #fff; margin: 20px 0;">
+
+        <!-- ===== 篩選器 Filter ===== -->
+        <h3 class="filter-title">商品篩選</h3>
+
+        <label class="filter-label">等級（可複選）</label>
+
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="rarity-all"> 全部</label>
+            <label><input type="checkbox" class="rarity-check" value="拉完了"> 拉完了</label>
+            <label><input type="checkbox" class="rarity-check" value="NPC"> NPC</label>
+            <label><input type="checkbox" class="rarity-check" value="人上人"> 人上人</label>
+            <label><input type="checkbox" class="rarity-check" value="頂級"> 頂級</label>
+            <label><input type="checkbox" class="rarity-check" value="夯"> 夯</label>
+        </div>
+
+
+        <label class="filter-label">力量 ≥</label>
+        <input id="filter-strength" type="number" min="0" value="0" class="filter-input">
+
+        <label class="filter-label">智慧 ≥</label>
+        <input id="filter-intelligence" type="number" min="0" value="0" class="filter-input">
+
+        <label class="filter-label">運氣 ≥</label>
+        <input id="filter-luck" type="number" min="0" value="0" class="filter-input">
+
+        <button id="filter-btn" class="filter-btn">套用篩選</button>
     </div>
 
-    <!-- 右側主內容區 -->
+    <!-- 右側主內容 -->
     <div class="content-area">
         <h2 style="color: white;">歡迎來到購物頁面</h2>
 
@@ -32,5 +59,4 @@
     </div>
 
 </body>
-
 </html>

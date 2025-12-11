@@ -291,3 +291,57 @@ body::before {
     box-sizing: border-box;
 }
 
+/* ===============================
+   篩選器 Filter UI
+================================ */
+.filter-title {
+    color: white;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.filter-label {
+    color: #ddd;
+    font-size: 14px;
+    margin-top: 10px;
+    display: block;
+}
+
+.filter-select,
+.filter-input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.filter-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.filter-btn:hover {
+    background: #0066d6;
+}
+
+.checkbox-group {
+    margin-left: 5px;
+    color: #eee;
+    font-size: 14px;
+}
+.checkbox-group label {
+    display: block;
+    margin-bottom: 4px;
+}
+.checkbox-group input {
+    margin-right: 6px;
+}
