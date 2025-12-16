@@ -345,3 +345,118 @@ body::before {
 .checkbox-group input {
     margin-right: 6px;
 }
+
+/* ===============================
+   購物車 shopping cart
+================================ */
+.cart-items {
+    margin-top: 20px;
+}
+
+.cart-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.cart-item img {
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.cart-item button {
+    background: #d9534f;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    height: 32px;
+    font-size: 16px;
+    line-height: 32px;
+    padding: 0 12px;
+}
+
+.cart-item button:hover {
+    background: #c9302c;
+}
+
+.cart-item-info {
+    flex-grow: 1;
+}
+
+.cart-item-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.cart-item-price {
+    margin-top: 5px;
+}
+
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.qty-control button {
+    width: 40px;
+    height: 32px;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.qty-control input {
+    width: 50px;
+    height: 28px;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.cart-select-all {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.cart-select-all input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #4CAF50; /* 綠色勾選效果，可依主題調整 */
+    cursor: pointer;
+}
+
+.cart-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #4CAF50; /* 綠色勾選效果，可依主題調整 */
+    cursor: pointer;
+}
+
+.checkout-btn {
+    margin-top: 20px;
+    padding: 12px 20px;
+    background: #4CAF50;
+    border: none;
+    color: white;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.checkout-btn:hover {
+    background: #45a049;
+}

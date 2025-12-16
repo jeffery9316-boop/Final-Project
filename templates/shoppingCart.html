@@ -4,24 +4,36 @@
     <meta charset="UTF-8">
     <title>購物車</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script defer src="{{ url_for('static', filename='js/shoppingCart.js') }}"></script>
 </head>
 
 <body class="shopping-body">
 
-    <!-- 左側欄（精簡版） -->
     <div class="sidebar">
-        <h2 class="sidebar-title">購物頁面</h2>
-
+        <h2 class="sidebar-title">購物車</h2>
         <p class="sidebar-user">歡迎，{{ username }}</p>
 
         <a href="{{ url_for('shopping') }}"><button class="sidebar-btn">返回購物頁面</button></a>
         <a href="{{ url_for('logout') }}"><button class="sidebar-btn logout-btn">登出</button></a>
     </div>
 
-    <!-- 主內容 -->
     <div class="content-area">
         <h2 style="color:white;">你的購物車</h2>
-        <p style="color:white;">（這裡以後會顯示購物車內容）</p>
+
+        <!-- 全選 -->
+        <div class="cart-select-all">
+            <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
+            <label for="selectAll" style="color:white;">全選</label>
+        </div>
+
+        <!-- 購物車內容 -->
+        <div id="cartItems" class="cart-items"></div>
+
+        <!-- 總金額 -->
+        <h3 id="cartTotal" style="color:white; margin-top:20px;">總金額：0</h3>
+
+        <!-- 結帳 -->
+        <button class="checkout-btn" onclick="checkout()">結帳</button>
     </div>
 
 </body>
