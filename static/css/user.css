@@ -120,3 +120,74 @@ body::before {
     pointer-events: none;
     border: 1px solid #aaa;
 }
+
+/* Modal 背景 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 200;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+}
+
+/* Modal 內容 */
+.modal-content {
+    background: #222;
+    color: white;
+    width: 350px;
+    margin: 120px auto;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #555;
+}
+
+.modal-img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.modal-close {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.qty-control {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.qty-control button {
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+}
+
+.use-btn {
+    width: 100%;
+    padding: 10px;
+    background: #4caf50;
+    border: none;
+    color: white;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.stat-animate {
+    animation: statFlash 0.6s ease;
+}
+
+@keyframes statFlash {
+    0% { color: yellow; transform: scale(1.2); }
+    100% { color: white; transform: scale(1); }
+}

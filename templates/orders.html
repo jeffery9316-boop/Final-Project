@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>歷史訂單</title>
+
+    <!-- Sidebar 共用 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+
+    <!-- Orders 專用 CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">
+</head>
+
+<body class="shopping-body">
+
+    <!-- 左側欄 -->
+    <div class="sidebar">
+        <h2 class="sidebar-title">歷史訂單</h2>
+
+        <p class="sidebar-user">歡迎，{{ user.name }}</p>
+
+        <a href="{{ url_for('user') }}">
+            <button class="sidebar-btn">返回使用者頁面</button>
+        </a>
+
+        <a href="{{ url_for('shopping') }}">
+            <button class="sidebar-btn">返回購物頁面</button>
+        </a>
+
+        <a href="{{ url_for('logout') }}">
+            <button class="sidebar-btn logout-btn">登出</button>
+        </a>
+    </div>
+
+    <!-- 主內容 -->
+    <div class="content-area">
+
+        <section class="user-section">
+            <h2>歷史訂單紀錄</h2>
+
+            <div class="order-list">
+                {% for o in orders %}
+                <div class="order-card">
+                    <p><strong>訂單編號：</strong>{{ o.order_id }}</p>
+                    <p><strong>總金額：</strong>{{ o.total_price }}</p>
+                    <p><strong>日期：</strong>{{ o.created_at }}</p>
+
+                    <button class="detail-btn" data-id="{{ o.order_id }}">查看明細</button>
+
+                    <div class="details-box" id="details-{{ o.order_id }}" style="display:none;"></div>
+                </div>
+                {% endfor %}
+            </div>
+
+        </section>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/orders.js') }}"></script>
+
+</body>
+</html>

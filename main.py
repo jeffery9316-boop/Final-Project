@@ -39,6 +39,36 @@ def shoppingcart():
     # ★ 傳送登入姓名到購物車頁面
     return render_template("shoppingCart.html", username=session.get('name'))
 
+@app.route("/orders")
+def orders():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user_id = session["user_id"]
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 查詢使用者資料
+    cursor.execute("""
+        SELECT account, name, created_at, strength, intelligence, luck
+        FROM Users
+        WHERE user_id=?
+    """, (user_id,))
+    user = cursor.fetchone()
+
+    # 查詢訂單
+    cursor.execute("""
+        SELECT order_id, total_price, created_at
+        FROM Orders
+        WHERE user_id=?
+        ORDER BY created_at DESC
+    """, (user_id,))
+    orders = cursor.fetchall()
+
+    conn.close()
+
+    return render_template("orders.html", user=user, orders=orders)
+
 @app.route('/user')
 def user():
     if 'user_id' not in session:
@@ -369,7 +399,7 @@ def checkout():
 
     placeholders = ",".join("?" * len(selected_items))
 
-    # 1️⃣ 先 SELECT 購物車內容
+    # 1️⃣ 查詢購物車內容
     query = f"""
         SELECT Items.item_id, Items.price, Cart.quantity
         FROM Cart
@@ -383,12 +413,12 @@ def checkout():
         return jsonify({"error": "選擇的商品不存在"}), 400
 
     # 2️⃣ 計算總金額
-    total_price = sum(item[1] * item[2] for item in cart_items)
+    total_price = sum(price * qty for _, price, qty in cart_items)
 
-    # 3️⃣ 建立訂單
+    # 3️⃣ 建立訂單（含 created_at）
     cursor.execute("""
-        INSERT INTO Orders (user_id, total_price)
-        VALUES (?, ?)
+        INSERT INTO Orders (user_id, total_price, created_at)
+        VALUES (?, ?, datetime('now', 'localtime'))
     """, (user_id, total_price))
     order_id = cursor.lastrowid
 
@@ -408,7 +438,7 @@ def checkout():
             WHERE item_id=?
         """, (qty, item_id))
 
-        # ⭐ 寫入 Inventory（包包）
+        # 寫入 Inventory（包包）
         cursor.execute("""
             SELECT quantity FROM Inventory
             WHERE user_id=? AND item_id=?
@@ -416,20 +446,18 @@ def checkout():
         existing = cursor.fetchone()
 
         if existing:
-            # 已有 → 更新數量
             cursor.execute("""
                 UPDATE Inventory
                 SET quantity = quantity + ?
                 WHERE user_id=? AND item_id=?
             """, (qty, user_id, item_id))
         else:
-            # 沒有 → 新增
             cursor.execute("""
                 INSERT INTO Inventory (user_id, item_id, quantity)
                 VALUES (?, ?, ?)
             """, (user_id, item_id, qty))
 
-    # 5️⃣ 最後刪除購物車
+    # 5️⃣ 清空購物車中已購買的項目
     cursor.execute(
         f"DELETE FROM Cart WHERE user_id=? AND item_id IN ({placeholders})",
         [user_id, *selected_items]
@@ -439,6 +467,30 @@ def checkout():
     conn.close()
 
     return jsonify({"message": "結帳完成"})
+
+# ============================================================
+# API：查詢訂單明細
+# ============================================================
+@app.route("/api/order_details/<int:order_id>")
+def order_details(order_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "未登入"}), 401
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT Items.name, OrderDetails.quantity, OrderDetails.price
+        FROM OrderDetails
+        JOIN Items ON OrderDetails.item_id = Items.item_id
+        WHERE OrderDetails.order_id=?
+    """, (order_id,))
+    details = cursor.fetchall()
+
+    conn.close()
+
+    return jsonify([dict(row) for row in details])
 
 # ============================================================
 # API：取得使用者包包
@@ -464,6 +516,101 @@ def api_inventory():
     conn.close()
 
     return jsonify(items)
+
+# ============================================================
+# API：使用道具
+# ============================================================
+@app.route("/api/use_item", methods=["POST"])
+def use_item():
+    if "user_id" not in session:
+        return jsonify({"error": "未登入"}), 401
+
+    data = request.get_json()
+    item_id = data.get("item_id")
+    qty = data.get("quantity", 1)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    user_id = session["user_id"]
+
+    # 取得道具資訊
+    cursor.execute("""
+        SELECT strength_bonus, intelligence_bonus, luck_bonus
+        FROM Items WHERE item_id=?
+    """, (item_id,))
+    item = cursor.fetchone()
+
+    if not item:
+        return jsonify({"error": "道具不存在"}), 400
+
+    str_b, int_b, luck_b = item
+
+    # 檢查持有數量
+    cursor.execute("""
+        SELECT quantity FROM Inventory
+        WHERE user_id=? AND item_id=?
+    """, (user_id, item_id))
+    inv = cursor.fetchone()
+
+    # 如果沒有這筆資料 → 直接回傳
+    if not inv:
+        return jsonify({"error": "道具數量不足"}), 400
+
+    # 如果數量是 0 → 刪除並回傳錯誤
+    if inv["quantity"] == 0:
+        cursor.execute("""
+            DELETE FROM Inventory
+            WHERE user_id=? AND item_id=?
+        """, (user_id, item_id))
+        conn.commit()
+        return jsonify({"error": "道具數量不足"}), 400
+
+    # 如果數量不足以使用
+    if inv["quantity"] < qty:
+        return jsonify({"error": "道具數量不足"}), 400
+
+    # 扣除道具
+    cursor.execute("""
+        UPDATE Inventory
+        SET quantity = quantity - ?
+        WHERE user_id=? AND item_id=?
+    """, (qty, user_id, item_id))
+
+    # 如果數量變 0 → 刪除這筆資料
+    cursor.execute("""
+        DELETE FROM Inventory
+        WHERE user_id=? AND item_id=? AND quantity <= 0
+    """, (user_id, item_id))
+
+    # 更新能力值（乘上使用數量）
+    cursor.execute("""
+        UPDATE Users
+        SET strength = strength + ?,
+            intelligence = intelligence + ?,
+            luck = luck + ?
+        WHERE user_id=?
+    """, (str_b * qty, int_b * qty, luck_b * qty, user_id))
+
+    # 回傳最新能力值
+    cursor.execute("""
+        SELECT strength, intelligence, luck
+        FROM Users WHERE user_id=?
+    """, (user_id,))
+    new_stats = cursor.fetchone()
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "message": "使用成功",
+        "stats": {
+            "strength": new_stats["strength"],
+            "intelligence": new_stats["intelligence"],
+            "luck": new_stats["luck"]
+        }
+    })
+
 
 # ============================================================
 # 啟動 Flask

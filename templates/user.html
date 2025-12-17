@@ -40,9 +40,9 @@
         <section class="user-section">
             <h2>能力數值</h2>
             <div class="stats-box">
-                <div class="stat-item">力量：{{ user.strength }}</div>
-                <div class="stat-item">智慧：{{ user.intelligence }}</div>
-                <div class="stat-item">運氣：{{ user.luck }}</div>
+                <div class="stat-item">力量：<span id="stat-strength">{{ user.strength }}</span></div>
+                <div class="stat-item">智慧：<span id="stat-intelligence">{{ user.intelligence }}</span></div>
+                <div class="stat-item">運氣：<span id="stat-luck">{{ user.luck }}</span></div>
             </div>
         </section>
 
@@ -56,6 +56,26 @@
             <div id="item-tooltip" class="tooltip-box" style="display:none;"></div>
         </section>
 
+    </div>
+
+    <!-- 使用道具彈窗 -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <span id="modalClose" class="modal-close">&times;</span>
+
+            <img id="modalItemImg" class="modal-img">
+            <h2 id="modalItemName"></h2>
+            <p id="modalItemDesc"></p>
+            <p>持有數量：<span id="modalItemQty"></span></p>
+
+            <div class="qty-control">
+                <button id="qtyMinus">-</button>
+                <span id="useQty">1</span>
+                <button id="qtyPlus">+</button>
+            </div>
+
+            <button id="useItemBtn" class="use-btn">使用</button>
+        </div>
     </div>
 
     <!-- User JS -->
