@@ -144,7 +144,7 @@ def load_items():
     count = cursor.fetchone()[0]
 
     if count == 0:  # 只有在空表時才匯入
-        with open("database/items.sql", "r", encoding="utf-8") as f:
+        with open("database\items.sql", "r", encoding="utf-8") as f:
             cursor.executescript(f.read())
         conn.commit()
         print("道具已成功匯入 Items 表！")
