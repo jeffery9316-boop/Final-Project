@@ -67,7 +67,7 @@ def orders():
 
     conn.close()
 
-    return render_template("orders.html", user=user, orders=orders, username=session.get('name'))
+    return render_template("orders.html", user=user, orders=orders)
 
 @app.route('/user')
 def user():
@@ -92,7 +92,7 @@ def user():
 
     conn.close()
 
-    return render_template("user.html", user=user, inventory=inventory, username=session.get('name'))
+    return render_template("user.html", user=user, inventory=inventory)
 
 # ============================================================
 # 登出功能

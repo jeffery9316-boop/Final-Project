@@ -15,7 +15,7 @@
 
         <!-- 使用者列 -->
         <div class="sidebar-user-row">
-            <span class="sidebar-user">歡迎，{{ username }}</span>
+            <span class="sidebar-user">歡迎，{{ user.name }}</span>
             <a href="{{ url_for('logout') }}">
                 <button class="logout-mini-btn">登出</button>
             </a>
