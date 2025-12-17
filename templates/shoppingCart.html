@@ -12,19 +12,14 @@
 
     <div class="sidebar">
         <h2 class="sidebar-title">購物車</h2>
-        <p class="sidebar-user">歡迎，{{ user.name }}</p>
+        <p class="sidebar-user">歡迎，{{ username }}</p>
 
         <a href="{{ url_for('shopping') }}"><button class="sidebar-btn">返回購物頁面</button></a>
         <a href="{{ url_for('logout') }}"><button class="sidebar-btn logout-btn">登出</button></a>
     </div>
 
     <div class="content-area">
-        <h2 style="color:white;">
-            你的購物車　
-            <span style="font-size:20px; color:#ffd700;">
-                （餘額：<span id="user-money">{{ user.money }}</span> 元）
-            </span>
-        </h2>
+        <h2 style="color:white;">你的購物車</h2>
 
         <!-- 全選 -->
         <div class="cart-select-all">

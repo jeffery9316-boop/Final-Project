@@ -24,50 +24,20 @@ def register():
 
 @app.route('/shopping')
 def shopping():
+    # 如果尚未登入 → 不能訪問
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    user_id = session['user_id']
-
-    conn = sqlite3.connect("database/app.db")
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    # 取得使用者資料（含 money）
-    cursor.execute("""
-        SELECT name, money
-        FROM Users
-        WHERE user_id=?
-    """, (user_id,))
-    user = cursor.fetchone()
-
-    conn.close()
-
-    return render_template("shopping.html", user=user)
+    # ★ 傳送登入使用者的姓名
+    return render_template("shopping.html", username=session.get('name'))
 
 @app.route('/shoppingcart')
 def shoppingcart():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    user_id = session['user_id']
-
-    conn = sqlite3.connect("database/app.db")
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    # 取得使用者資料（含 money）
-    cursor.execute("""
-        SELECT name, money
-        FROM Users
-        WHERE user_id=?
-    """, (user_id,))
-    user = cursor.fetchone()
-
-    conn.close()
-
-    return render_template("shoppingCart.html", user=user)
-
+    # ★ 傳送登入姓名到購物車頁面
+    return render_template("shoppingCart.html", username=session.get('name'))
 
 @app.route("/orders")
 def orders():
@@ -108,13 +78,7 @@ def user():
     cursor = conn.cursor()
 
     # 取得使用者資料
-    cursor.execute("""
-        SELECT user_id, account, name, created_at,
-            strength, intelligence, luck, money
-        FROM Users
-        WHERE user_id = ?
-    """, (session["user_id"],))
-
+    cursor.execute("SELECT * FROM Users WHERE user_id = ?", (session["user_id"],))
     user = cursor.fetchone()
 
     # 取得包包（Inventory）
@@ -222,41 +186,23 @@ def api_register():
 @app.route('/api/items', methods=['GET'])
 def api_items():
     conn = sqlite3.connect("database/app.db")
-    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT 
-            item_id,
-            name,
-            rarity,
-            price,
-            effect_description,
-            image_path,
-            stock,
-            strength_bonus,
-            intelligence_bonus,
-            luck_bonus
-        FROM Items
-    """)
+    cursor.execute("SELECT item_id, name, rarity, price, effect_description, image_path, stock FROM Items")
     items = cursor.fetchall()
     conn.close()
 
     result = []
     for item in items:
         result.append({
-            "item_id": item["item_id"],
-            "name": item["name"],
-            "rarity": item["rarity"],
-            "price": item["price"],
-            "effect_description": item["effect_description"],
-            "image_path": item["image_path"],
-            "stock": item["stock"],
-            "strength_bonus": item["strength_bonus"],
-            "intelligence_bonus": item["intelligence_bonus"],
-            "luck_bonus": item["luck_bonus"]
-        })
+            "item_id": item[0],
+            "name": item[1],
+            "rarity": item[2],
+            "price": item[3],
+            "effect_description": item[4],
+            "image_path": item[5],
+            "stock": item[6]
 
+        })
     return jsonify(result)
 
 # ============================================================
@@ -443,6 +389,7 @@ def checkout():
 
     data = request.get_json()
     selected_items = data.get("items", [])
+    print("收到 items:", selected_items)
 
     if not selected_items:
         return jsonify({"error": "沒有選擇商品"}), 400
@@ -450,12 +397,9 @@ def checkout():
     conn = sqlite3.connect("database/app.db")
     cursor = conn.cursor()
 
-    # 取得使用者餘額
-    cursor.execute("SELECT money FROM Users WHERE user_id=?", (user_id,))
-    user_money = cursor.fetchone()[0]
-
-    # 查詢購物車內容
     placeholders = ",".join("?" * len(selected_items))
+
+    # 1️⃣ 查詢購物車內容
     query = f"""
         SELECT Items.item_id, Items.price, Cart.quantity
         FROM Cart
@@ -468,41 +412,33 @@ def checkout():
     if not cart_items:
         return jsonify({"error": "選擇的商品不存在"}), 400
 
-    # 計算總金額
+    # 2️⃣ 計算總金額
     total_price = sum(price * qty for _, price, qty in cart_items)
 
-    # ⭐ 錢不夠 → 不能結帳
-    if user_money < total_price:
-        return jsonify({"error": "餘額不足，無法結帳"}), 400
-
-    # ⭐ 扣錢
-    cursor.execute("""
-        UPDATE Users
-        SET money = money - ?
-        WHERE user_id=?
-    """, (total_price, user_id))
-
-    # 建立訂單
+    # 3️⃣ 建立訂單（含 created_at）
     cursor.execute("""
         INSERT INTO Orders (user_id, total_price, created_at)
         VALUES (?, ?, datetime('now', 'localtime'))
     """, (user_id, total_price))
     order_id = cursor.lastrowid
 
-    # 建立訂單明細 + 扣庫存 + 寫入 Inventory
+    # 4️⃣ 建立訂單明細 + 扣庫存 + 寫入 Inventory
     for item_id, price, qty in cart_items:
 
+        # 建立訂單明細
         cursor.execute("""
             INSERT INTO OrderDetails (order_id, item_id, quantity, price)
             VALUES (?, ?, ?, ?)
         """, (order_id, item_id, qty, price))
 
+        # 扣庫存
         cursor.execute("""
             UPDATE Items
             SET stock = stock - ?
             WHERE item_id=?
         """, (qty, item_id))
 
+        # 寫入 Inventory（包包）
         cursor.execute("""
             SELECT quantity FROM Inventory
             WHERE user_id=? AND item_id=?
@@ -521,7 +457,7 @@ def checkout():
                 VALUES (?, ?, ?)
             """, (user_id, item_id, qty))
 
-    # 清除購物車
+    # 5️⃣ 清空購物車中已購買的項目
     cursor.execute(
         f"DELETE FROM Cart WHERE user_id=? AND item_id IN ({placeholders})",
         [user_id, *selected_items]
@@ -564,41 +500,21 @@ def api_inventory():
     if "user_id" not in session:
         return jsonify({"error": "未登入"}), 401
 
-    user_id = session["user_id"]
-
     conn = get_connection()
-    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT 
-            i.item_id,
-            i.name,
-            i.effect_description,
-            i.image_path,
-            i.strength_bonus,
-            i.intelligence_bonus,
-            i.luck_bonus,
-            inv.quantity
+        SELECT i.item_id, i.name, i.effect_description, i.image_path,
+               i.strength_bonus, i.intelligence_bonus, i.luck_bonus,
+               inv.quantity
         FROM Inventory inv
         JOIN Items i ON inv.item_id = i.item_id
         WHERE inv.user_id = ?
-    """, (user_id,))
+    """, (session["user_id"],))
 
-    items = []
-    for row in cursor.fetchall():
-        items.append({
-            "item_id": row["item_id"],
-            "name": row["name"],
-            "effect_description": row["effect_description"],
-            "image_path": row["image_path"],
-            "strength_bonus": row["strength_bonus"],
-            "intelligence_bonus": row["intelligence_bonus"],
-            "luck_bonus": row["luck_bonus"],
-            "quantity": row["quantity"]
-        })
-
+    items = [dict(row) for row in cursor.fetchall()]
     conn.close()
+
     return jsonify(items)
 
 # ============================================================
@@ -683,10 +599,6 @@ def use_item():
     """, (user_id,))
     new_stats = cursor.fetchone()
 
-    # 回傳 new_money
-    cursor.execute("SELECT money FROM Users WHERE user_id=?", (user_id,))
-    new_money = cursor.fetchone()[0]
-
     conn.commit()
     conn.close()
 
@@ -696,8 +608,7 @@ def use_item():
             "strength": new_stats["strength"],
             "intelligence": new_stats["intelligence"],
             "luck": new_stats["luck"]
-        },
-        "new_money": new_money
+        }
     })
 
 

@@ -158,13 +158,6 @@ body::before {
     cursor: pointer;
 }
 
-.item-bonus-text {
-    font-size: 14px;
-    color: #ffd700;
-    margin: 6px 0;
-    text-align: center;
-}
-
 .qty-control {
     display: flex;
     justify-content: center;

@@ -15,7 +15,7 @@
         <h2 class="sidebar-title">購物頁面</h2>
 
         <!-- 顯示登入姓名 -->
-        <p class="sidebar-user">歡迎，{{ user.name }}</p>
+        <p class="sidebar-user">歡迎，{{ username }}</p>
 
         <!-- 導覽按鈕 -->
         <a href="{{ url_for('shoppingcart') }}"><button class="sidebar-btn">購物車</button></a>
@@ -54,12 +54,7 @@
 
     <!-- 右側主內容 -->
     <div class="content-area">
-        <h2 style="color:white;">
-            歡迎來到購物頁面　
-            <span style="font-size:20px; color:#ffd700;">
-                （餘額：<span id="user-money">{{ user.money }}</span> 元）
-            </span>
-        </h2>
+        <h2 style="color: white;">歡迎來到購物頁面</h2>
 
         <!-- 商品展示區 -->
         <div id="itemsGrid" class="items-grid"></div>
