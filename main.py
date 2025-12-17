@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import sqlite3
 import hashlib
-from database.database import init_db, load_items
+from database.database import get_connection, init_db, load_items
 
 
 app = Flask(__name__, static_folder='static')
@@ -43,9 +43,26 @@ def shoppingcart():
 def user():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
-    # ★ 傳送登入姓名到使用者頁面
-    return render_template("user.html", username=session.get('name'))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 取得使用者資料
+    cursor.execute("SELECT * FROM Users WHERE user_id = ?", (session["user_id"],))
+    user = cursor.fetchone()
+
+    # 取得包包（Inventory）
+    cursor.execute("""
+        SELECT i.*, inv.quantity
+        FROM Inventory inv
+        JOIN Items i ON inv.item_id = i.item_id
+        WHERE inv.user_id = ?
+    """, (session["user_id"],))
+    inventory = cursor.fetchall()
+
+    conn.close()
+
+    return render_template("user.html", user=user, inventory=inventory)
 
 # ============================================================
 # 登出功能
@@ -93,7 +110,7 @@ def api_login():
         return jsonify({"status": "fail", "message": "帳號或密碼錯誤"})
 
 # ============================================================
-# API：註冊
+# API：註冊（加入能力點數）
 # ============================================================
 @app.route('/api/register', methods=['POST'])
 def api_register():
@@ -101,6 +118,15 @@ def api_register():
     account = data.get("account")
     name = data.get("name")
     password = data.get("password")
+
+    # 新增能力欄位
+    strength = int(data.get("strength", 0))
+    intelligence = int(data.get("intelligence", 0))
+    luck = int(data.get("luck", 0))
+
+    # 驗證能力點數總和
+    if strength + intelligence + luck > 30:
+        return jsonify({"status": "fail", "message": "能力點數總和不能超過 30 點！"})
 
     # 密碼 hash
     password_hash = hashlib.sha256(password.encode()).hexdigest()
@@ -110,8 +136,11 @@ def api_register():
 
     try:
         cursor.execute(
-            "INSERT INTO Users (account, name, password_hash) VALUES (?, ?, ?)",
-            (account, name, password_hash)
+            """
+            INSERT INTO Users (account, name, password_hash, strength, intelligence, luck)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (account, name, password_hash, strength, intelligence, luck)
         )
         conn.commit()
         conn.close()
@@ -290,7 +319,7 @@ def remove_from_cart():
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "已移除"})
+    return jsonify({"message": "已移除商品"})
 
 # ============================================================
 # API：購務車調整數量
@@ -320,7 +349,7 @@ def update_cart_quantity():
     return jsonify({"message": "數量已更新"})
 
 # ============================================================
-# API：結帳
+# API：結帳（含寫入 Inventory）
 # ============================================================
 @app.route('/api/cart/checkout', methods=['POST'])
 def checkout():
@@ -340,7 +369,7 @@ def checkout():
 
     placeholders = ",".join("?" * len(selected_items))
 
-    # 1️⃣ 先 SELECT
+    # 1️⃣ 先 SELECT 購物車內容
     query = f"""
         SELECT Items.item_id, Items.price, Cart.quantity
         FROM Cart
@@ -363,20 +392,44 @@ def checkout():
     """, (user_id, total_price))
     order_id = cursor.lastrowid
 
-    # 4️⃣ 建立訂單明細 + 扣庫存
+    # 4️⃣ 建立訂單明細 + 扣庫存 + 寫入 Inventory
     for item_id, price, qty in cart_items:
+
+        # 建立訂單明細
         cursor.execute("""
             INSERT INTO OrderDetails (order_id, item_id, quantity, price)
             VALUES (?, ?, ?, ?)
         """, (order_id, item_id, qty, price))
 
+        # 扣庫存
         cursor.execute("""
             UPDATE Items
             SET stock = stock - ?
             WHERE item_id=?
         """, (qty, item_id))
 
-    # 5️⃣ 最後才 DELETE
+        # ⭐ 寫入 Inventory（包包）
+        cursor.execute("""
+            SELECT quantity FROM Inventory
+            WHERE user_id=? AND item_id=?
+        """, (user_id, item_id))
+        existing = cursor.fetchone()
+
+        if existing:
+            # 已有 → 更新數量
+            cursor.execute("""
+                UPDATE Inventory
+                SET quantity = quantity + ?
+                WHERE user_id=? AND item_id=?
+            """, (qty, user_id, item_id))
+        else:
+            # 沒有 → 新增
+            cursor.execute("""
+                INSERT INTO Inventory (user_id, item_id, quantity)
+                VALUES (?, ?, ?)
+            """, (user_id, item_id, qty))
+
+    # 5️⃣ 最後刪除購物車
     cursor.execute(
         f"DELETE FROM Cart WHERE user_id=? AND item_id IN ({placeholders})",
         [user_id, *selected_items]
@@ -386,6 +439,31 @@ def checkout():
     conn.close()
 
     return jsonify({"message": "結帳完成"})
+
+# ============================================================
+# API：取得使用者包包
+# ============================================================
+@app.route("/api/inventory")
+def api_inventory():
+    if "user_id" not in session:
+        return jsonify({"error": "未登入"}), 401
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT i.item_id, i.name, i.effect_description, i.image_path,
+               i.strength_bonus, i.intelligence_bonus, i.luck_bonus,
+               inv.quantity
+        FROM Inventory inv
+        JOIN Items i ON inv.item_id = i.item_id
+        WHERE inv.user_id = ?
+    """, (session["user_id"],))
+
+    items = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+
+    return jsonify(items)
 
 # ============================================================
 # 啟動 Flask

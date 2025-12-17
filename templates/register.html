@@ -3,29 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <title>註冊</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
     <script defer src="{{ url_for('static', filename='js/register.js') }}"></script>
 </head>
 
 <body>
-    <div class="auth-container">
-        <h2>註冊</h2>
+    <div class="register-container">
+        <h2>創建角色</h2>
 
         <input type="text" id="regAccount" placeholder="帳號">
-        <br>
-
         <input type="text" id="regName" placeholder="名字">
-        <br>
-
         <input type="password" id="regPassword" placeholder="密碼">
-        <br>
+
+        <h3>能力點數分配（剩餘：<span id="pointsLeft">30</span>）</h3>
+
+        <div class="stat-row">
+            <label>力量（Strength）</label>
+            <input type="range" id="regStrength" min="0" max="100" value="0">
+            <span id="strengthValue">0</span>
+        </div>
+
+        <div class="stat-row">
+            <label>智慧（Intelligence）</label>
+            <input type="range" id="regIntelligence" min="0" max="100" value="0">
+            <span id="intelligenceValue">0</span>
+        </div>
+
+        <div class="stat-row">
+            <label>運氣（Luck）</label>
+            <input type="range" id="regLuck" min="0" max="100" value="0">
+            <span id="luckValue">0</span>
+        </div>
 
         <button id="registerBtn">註冊</button>
 
         <div class="auth-links">
-            已經有帳號？
-            <a href="{{ url_for('login') }}">返回登入</a>
+            已有帳號？<a href="{{ url_for('login') }}">登入</a>
         </div>
     </div>
+
 </body>
 </html>

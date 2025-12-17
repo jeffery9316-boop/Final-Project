@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>使用者資料</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- 共用 Sidebar CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+
+    <!-- 專用 User CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
 </head>
 
 <body class="shopping-body">
 
-    <!-- 左側欄（精簡版） -->
+    <!-- 左側欄 -->
     <div class="sidebar">
-        <h2 class="sidebar-title">購物頁面</h2>
+        <h2 class="sidebar-title">使用者資料</h2>
 
-        <p class="sidebar-user">歡迎，{{ username }}</p>
+        <p class="sidebar-user">歡迎，{{ user.name }}</p>
 
         <a href="{{ url_for('shopping') }}"><button class="sidebar-btn">返回購物頁面</button></a>
         <a href="{{ url_for('logout') }}"><button class="sidebar-btn logout-btn">登出</button></a>
@@ -20,9 +25,41 @@
 
     <!-- 主內容 -->
     <div class="content-area">
-        <h2 style="color:white;">使用者資料</h2>
-        <p style="color:white;">（這裡可以顯示使用者詳細資訊）</p>
+
+        <!-- 使用者資訊 -->
+        <section class="user-section">
+            <h2>使用者資訊</h2>
+            <div class="user-info-box">
+                <p><strong>帳號：</strong>{{ user.account }}</p>
+                <p><strong>名稱：</strong>{{ user.name }}</p>
+                <p><strong>建立時間：</strong>{{ user.created_at }}</p>
+            </div>
+        </section>
+
+        <!-- 能力數值 -->
+        <section class="user-section">
+            <h2>能力數值</h2>
+            <div class="stats-box">
+                <div class="stat-item">力量：{{ user.strength }}</div>
+                <div class="stat-item">智慧：{{ user.intelligence }}</div>
+                <div class="stat-item">運氣：{{ user.luck }}</div>
+            </div>
+        </section>
+
+        <!-- 包包 -->
+        <section class="user-section">
+            <h2>包包（已購買道具）</h2>
+
+            <div class="inventory-grid" id="inventoryGrid"></div>
+
+            <!-- Tooltip -->
+            <div id="item-tooltip" class="tooltip-box" style="display:none;"></div>
+        </section>
+
     </div>
+
+    <!-- User JS -->
+    <script src="{{ url_for('static', filename='js/user.js') }}"></script>
 
 </body>
 </html>

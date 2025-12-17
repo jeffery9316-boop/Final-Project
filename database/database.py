@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import hashlib
 
 def get_connection():
     # 如果 database 資料夾不存在，先建立
@@ -11,11 +12,14 @@ def get_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # 使用者表
+    # ============================
+    # 建立 Users 表
+    # ============================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS Users (
         user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,7 +33,9 @@ def init_db():
     )
     """)
 
-    # 道具表
+    # ============================
+    # 建立 Items 表
+    # ============================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS Items (
         item_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +51,9 @@ def init_db():
     )
     """)
 
-    # 購物車表
+    # ============================
+    # 建立 Cart 表
+    # ============================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS Cart (
         cart_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,7 +66,9 @@ def init_db():
     )
     """)
 
-    # 訂單表
+    # ============================
+    # 建立 Orders 表
+    # ============================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS Orders (
         order_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,7 +79,9 @@ def init_db():
     )
     """)
 
-    # 訂單明細表
+    # ============================
+    # 建立 OrderDetails 表
+    # ============================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS OrderDetails (
         detail_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,7 +94,9 @@ def init_db():
     )
     """)
 
-    # 包包表
+    # ============================
+    # 建立 Inventory 表
+    # ============================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS Inventory (
         inventory_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -96,7 +110,30 @@ def init_db():
     """)
 
     conn.commit()
+
+    # ============================
+    # 插入預設使用者
+    # ============================
+    default_users = [
+        ("test1", "測試人員1", "test1", 0, 0, 0),
+        ("test2", "測試人員2", "test2", 0, 0, 0),
+        ("npc1", "路人甲", "npc1", 10, 10, 10),
+        ("npc2", "路人乙", "npc2", 10, 10, 10)
+    ]
+
+    for account, name, password, str_val, int_val, luck_val in default_users:
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        try:
+            cursor.execute("""
+                INSERT INTO Users (account, name, password_hash, strength, intelligence, luck)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (account, name, password_hash, str_val, int_val, luck_val))
+        except sqlite3.IntegrityError:
+            pass  # 已存在就跳過
+
+    conn.commit()
     conn.close()
+
 
 def load_items():
     conn = get_connection()
@@ -115,4 +152,3 @@ def load_items():
         print("Items 表已有資料，跳過匯入。")
 
     conn.close()
-

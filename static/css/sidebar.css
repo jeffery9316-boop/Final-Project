@@ -1,0 +1,53 @@
+/* ===============================
+   左側功能欄 Sidebar（共用）
+================================ */
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background: rgba(0,0,0,0.55);
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-title {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 22px;
+    border-bottom: 1px solid white;
+    padding-bottom: 10px;
+}
+
+.sidebar-user {
+    color: white;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+/* 按鈕樣式 */
+.sidebar-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.sidebar-btn:hover {
+    background: #45a049;
+}
+
+/* 登出按鈕 */
+.logout-btn {
+    background: #d9534f;
+}
+
+.logout-btn:hover {
+    background: #c9302c;
+}

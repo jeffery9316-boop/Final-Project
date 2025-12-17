@@ -1,0 +1,137 @@
+/* ===============================
+   登入 / 註冊頁背景 & 置中
+================================ */
+body {
+    margin: 0;
+    height: 100vh;
+
+    background-image: url("../img/login_bg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 背景遮罩 */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    z-index: -1;
+}
+
+/* ===============================
+   登入 / 註冊框（毛玻璃效果）
+================================ */
+.auth-container,
+.register-container {
+    width: 350px;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    backdrop-filter: blur(30px);
+}
+
+/* 標題 */
+.auth-container h2,
+.register-container h2 {
+    margin-bottom: 20px;
+}
+
+/* ===============================
+   輸入框（登入用）
+================================ */
+.auth-container input {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* ===============================
+   創角輸入框（註冊用）
+================================ */
+.register-container input[type="text"],
+.register-container input[type="password"] {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* ===============================
+   Slider（能力點數）
+================================ */
+.stat-row {
+    margin: 15px 0;
+    text-align: left;
+}
+
+.stat-row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.stat-row input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+}
+
+.stat-row span {
+    float: right;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* 剩餘點數 */
+#pointsLeft {
+    font-size: 22px;
+    font-weight: bold;
+    color: green;
+}
+
+/* ===============================
+   按鈕（登入 / 註冊共用）
+================================ */
+button,
+#loginBtn,
+#registerBtn {
+    width: 95%;
+    padding: 12px;
+    margin-top: 15px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover,
+#loginBtn:hover,
+#registerBtn:hover {
+    background: #45a049;
+}
+
+/* ===============================
+   註冊/登入連結
+================================ */
+.auth-links {
+    margin-top: 15px;
+    font-size: 14px;
+}
