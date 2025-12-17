@@ -17,7 +17,7 @@ async function loadCart() {
         div.className = "cart-item";
 
         div.innerHTML = `
-            <input type="checkbox" class="cart-check" data-item-id="${item.item_id}" onchange="updateTotal()">
+            <input type="checkbox" class="cart-check" data-item-id="${item.item_id}" onchange="updateTotal(); syncSelectAll();">
 
             <img src="/static/img/${item.image_path}" alt="${item.name}">
 
@@ -97,6 +97,20 @@ function toggleSelectAll(all) {
 }
 
 // ================================
+// 單一項目勾選變動 → 同步全選
+// ================================
+function syncSelectAll() {
+    const checks = document.querySelectorAll(".cart-check");
+    const selectAll = document.getElementById("selectAll");
+
+    // 所有項目都勾選 → 全選勾選
+    const allChecked = [...checks].every(c => c.checked);
+
+    // 只要有一個沒勾 → 全選取消
+    selectAll.checked = allChecked;
+}
+
+// ================================
 // 移除商品
 // ================================
 async function removeItem(itemId) {
@@ -142,5 +156,13 @@ async function checkout() {
     }
 
     alert("結帳完成！");
+
+    // ★ 新增：取消全選
+    const selectAll = document.getElementById("selectAll");
+    if (selectAll) {
+        selectAll.checked = false;
+    }
+
+    // ★ 重新載入購物車
     loadCart();
 }

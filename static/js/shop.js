@@ -49,23 +49,31 @@ function renderItems(items) {
         const card = document.createElement("div");
         card.className = "item-card";
 
-        card.innerHTML = `
-            <img src="/static/img/${item.image_path}" alt="${item.name}" class="item-img">
-            <h3>${item.name}</h3>
-            <p>稀有度：${item.rarity}</p>
-            <p>價格：${item.price}</p>
-            <p>庫存：${item.stock}</p>
+    card.innerHTML = `
+        <img src="/static/img/${item.image_path}" alt="${item.name}" class="item-img">
 
-            <p class="item-description">${item.effect_description}</p>
+        <h3>${item.name}</h3>
+        <p>稀有度：${item.rarity}</p>
+        <p>價格：${item.price}</p>
+        <p>庫存：${item.stock}</p>
 
-            <div class="shop-qty-control">
-                <button onclick="changeQty(${item.item_id}, -1)">－</button>
-                <input type="text" id="qty-${item.item_id}" value="1">
-                <button onclick="changeQty(${item.item_id}, 1)">＋</button>
-            </div>
+        <p class="item-description">${item.effect_description}</p>
 
-            <button onclick="addToCart(${item.item_id})">加入購物車</button>
-        `;
+        <div class="item-bonus">
+            力量 +${item.strength_bonus}　
+            智慧 +${item.intelligence_bonus}　
+            運氣 +${item.luck_bonus}
+        </div>
+
+        <div class="shop-qty-control">
+            <button onclick="changeQty(${item.item_id}, -1)">－</button>
+            <input type="text" id="qty-${item.item_id}" value="1">
+            <button onclick="changeQty(${item.item_id}, 1)">＋</button>
+        </div>
+
+        <button onclick="addToCart(${item.item_id})">加入購物車</button>
+    `;
+
 
         grid.appendChild(card);
     });

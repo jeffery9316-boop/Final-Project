@@ -29,6 +29,7 @@ def init_db():
         strength INTEGER DEFAULT 0,
         intelligence INTEGER DEFAULT 0,
         luck INTEGER DEFAULT 0,
+        money INTEGER DEFAULT 10000,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)

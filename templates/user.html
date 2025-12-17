@@ -38,16 +38,45 @@
         <section class="user-section">
             <h2>能力數值</h2>
             <div class="stats-box">
-                <div class="stat-item">力量：<span>{{ user.strength }}</span></div>
-                <div class="stat-item">智慧：<span>{{ user.intelligence }}</span></div>
-                <div class="stat-item">運氣：<span>{{ user.luck }}</span></div>
+                <div class="stat-item">力量：<span id="stat-strength">{{ user.strength }}</span></div>
+                <div class="stat-item">智慧：<span id="stat-intelligence">{{ user.intelligence }}</span></div>
+                <div class="stat-item">運氣：<span id="stat-luck">{{ user.luck }}</span></div>
+            </div>
+        </section>
+
+        <section class="user-section">
+            <h2>錢包</h2>
+            <div class="stats-box">
+                <div class="stat-item">目前餘額：<span id="user-money">{{ user.money }}</span> 元</div>
             </div>
         </section>
 
         <section class="user-section">
             <h2>包包（已購買道具）</h2>
             <div class="inventory-grid" id="inventoryGrid"></div>
+            <div id="item-tooltip" class="tooltip-box" style="display:none;"></div>
         </section>
+    </div>
+
+    <!-- 使用道具彈窗 -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <span id="modalClose" class="modal-close">&times;</span>
+
+            <img id="modalItemImg" class="modal-img">
+            <h2 id="modalItemName"></h2>
+            <p id="modalItemDesc"></p>
+            <div id="modalItemBonus" class="item-bonus-text"></div>
+            <p>持有數量：<span id="modalItemQty"></span></p>
+
+            <div class="qty-control">
+                <button id="qtyMinus">-</button>
+                <span id="useQty">1</span>
+                <button id="qtyPlus">+</button>
+            </div>
+
+            <button id="useItemBtn" class="use-btn">使用</button>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/user.js') }}"></script>

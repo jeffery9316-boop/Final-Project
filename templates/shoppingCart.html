@@ -15,7 +15,7 @@
 
         <!-- 使用者列 -->
         <div class="sidebar-user-row">
-            <span class="sidebar-user">歡迎，{{ username }}</span>
+            <span class="sidebar-user">歡迎，{{ user.name }}</span>
             <a href="{{ url_for('logout') }}">
                 <button class="logout-mini-btn">登出</button>
             </a>
@@ -25,7 +25,12 @@
     </div>
 
     <div class="content-area">
-        <h2 style="color:white;">你的購物車</h2>
+        <h2 style="color:white;">
+            你的購物車　
+            <span style="font-size:20px; color:#ffd700;">
+                （餘額：<span id="user-money">{{ user.money }}</span> 元）
+            </span>
+        </h2>
 
         <div class="cart-select-all">
             <input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)">
