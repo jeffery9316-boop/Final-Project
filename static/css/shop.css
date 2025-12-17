@@ -54,18 +54,21 @@ body::before {
 
 .item-card {
     border: 1px solid #fff;
-    padding: 15px;
+    padding: 12px;
     width: 200px;
     text-align: center;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
     color: white;
 
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
 
-    height: 620px;
+    height: auto;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .item-img {
@@ -79,6 +82,13 @@ body::before {
     flex-grow: 1;
     margin: 10px 0;
 }
+
+.item-bonus {
+    font-size: 14px;
+    color: #ffd700;
+    margin: 4px 0;
+}
+
 
 /* ===============================
    商品頁的數量控制（避免與購物車衝突）

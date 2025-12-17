@@ -46,6 +46,14 @@
             </div>
         </section>
 
+        <!-- 顯示餘額 -->
+        <section class="user-section">
+            <h2>錢包</h2>
+            <div class="stats-box">
+                <div class="stat-item">目前餘額：<span id="user-money">{{ user.money }}</span> 元</div>
+            </div>
+        </section>
+
         <!-- 包包 -->
         <section class="user-section">
             <h2>包包（已購買道具）</h2>
@@ -66,6 +74,7 @@
             <img id="modalItemImg" class="modal-img">
             <h2 id="modalItemName"></h2>
             <p id="modalItemDesc"></p>
+            <div id="modalItemBonus" class="item-bonus-text"></div>
             <p>持有數量：<span id="modalItemQty"></span></p>
 
             <div class="qty-control">

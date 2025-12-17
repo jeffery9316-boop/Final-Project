@@ -88,6 +88,14 @@ function openItemModal(item) {
     modalQty.textContent = item.quantity;
     useQtyText.textContent = currentQty;
 
+    // ⭐ 新增：顯示能力加成
+    const bonusText = `
+        力量 +${item.strength_bonus}　
+        智慧 +${item.intelligence_bonus}　
+        運氣 +${item.luck_bonus}
+    `;
+    document.getElementById("modalItemBonus").innerHTML = bonusText;
+
     modal.style.display = "block";
 }
 
@@ -130,15 +138,22 @@ useItemBtn.onclick = async () => {
 
     alert("使用成功");
 
-    // 1️⃣ 更新能力值動畫
+    // 更新能力值
     if (data.stats) {
-        animateStats(data.stats);
+        document.getElementById("stat-strength").textContent = data.stats.strength;
+        document.getElementById("stat-intelligence").textContent = data.stats.intelligence;
+        document.getElementById("stat-luck").textContent = data.stats.luck;
     }
 
-    // 2️⃣ 重新載入包包（等待完成）
+    // ⭐ 更新錢
+    if (data.new_money !== undefined) {
+        document.getElementById("user-money").textContent = data.new_money;
+    }
+
+    // 重新載入包包
     await loadInventory();
 
-    // 3️⃣ 關閉彈窗
+    // 關閉彈窗
     modal.style.display = "none";
 };
 
