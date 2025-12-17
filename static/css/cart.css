@@ -48,8 +48,14 @@ body::before {
 .cart-select-all {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 15px;
     margin-bottom: 15px;
+}
+
+.cart-check,
+.cart-select-all input[type="checkbox"] {
+    transform: scale(2);   /* 放大 2 倍 */
+    cursor: pointer;
 }
 
 /* ===============================

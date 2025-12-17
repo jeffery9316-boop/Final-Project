@@ -157,12 +157,18 @@ async function checkout() {
 
     alert("結帳完成！");
 
-    // ★ 新增：取消全選
-    const selectAll = document.getElementById("selectAll");
-    if (selectAll) {
-        selectAll.checked = false;
+    // ★ 更新餘額（關鍵）
+    if (data.new_money !== undefined) {
+        document.getElementById("user-money").textContent = data.new_money;
     }
 
-    // ★ 重新載入購物車
-    loadCart();
+    // 重新載入購物車
+    await loadCart();
+
+    // 取消全選
+    const selectAll = document.getElementById("selectAll");
+    if (selectAll) selectAll.checked = false;
+
+    // 總金額歸零
+    document.getElementById("cartTotal").textContent = "總金額：0";
 }

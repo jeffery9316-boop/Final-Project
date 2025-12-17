@@ -426,7 +426,7 @@ def update_cart_quantity():
     return jsonify({"message": "數量已更新"})
 
 # ============================================================
-# API：結帳（含寫入 Inventory）
+# API：結帳（含寫入 Inventory，並回傳最新餘額）
 # ============================================================
 @app.route('/api/cart/checkout', methods=['POST'])
 def checkout():
@@ -445,7 +445,12 @@ def checkout():
 
     # 取得使用者餘額
     cursor.execute("SELECT money FROM Users WHERE user_id=?", (user_id,))
-    user_money = cursor.fetchone()[0]
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"error": "使用者不存在"}), 400
+
+    user_money = row[0]
 
     # 查詢購物車內容
     placeholders = ",".join("?" * len(selected_items))
@@ -459,71 +464,92 @@ def checkout():
     cart_items = cursor.fetchall()
 
     if not cart_items:
+        conn.close()
         return jsonify({"error": "選擇的商品不存在"}), 400
 
     # 計算總金額
     total_price = sum(price * qty for _, price, qty in cart_items)
 
-    # ⭐ 錢不夠 → 不能結帳
+    # 餘額不足
     if user_money < total_price:
+        conn.close()
         return jsonify({"error": "餘額不足，無法結帳"}), 400
 
-    # ⭐ 扣錢
-    cursor.execute("""
-        UPDATE Users
-        SET money = money - ?
-        WHERE user_id=?
-    """, (total_price, user_id))
+    # 扣錢
+    cursor.execute(
+        "UPDATE Users SET money = money - ? WHERE user_id=?",
+        (total_price, user_id)
+    )
 
     # 建立訂單
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO Orders (user_id, total_price, created_at)
         VALUES (?, ?, datetime('now', 'localtime'))
-    """, (user_id, total_price))
+        """,
+        (user_id, total_price)
+    )
     order_id = cursor.lastrowid
 
     # 建立訂單明細 + 扣庫存 + 寫入 Inventory
     for item_id, price, qty in cart_items:
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO OrderDetails (order_id, item_id, quantity, price)
             VALUES (?, ?, ?, ?)
-        """, (order_id, item_id, qty, price))
+            """,
+            (order_id, item_id, qty, price)
+        )
 
-        cursor.execute("""
-            UPDATE Items
-            SET stock = stock - ?
-            WHERE item_id=?
-        """, (qty, item_id))
+        cursor.execute(
+            "UPDATE Items SET stock = stock - ? WHERE item_id=?",
+            (qty, item_id)
+        )
 
-        cursor.execute("""
-            SELECT quantity FROM Inventory
-            WHERE user_id=? AND item_id=?
-        """, (user_id, item_id))
+        cursor.execute(
+            "SELECT quantity FROM Inventory WHERE user_id=? AND item_id=?",
+            (user_id, item_id)
+        )
         existing = cursor.fetchone()
 
         if existing:
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE Inventory
                 SET quantity = quantity + ?
                 WHERE user_id=? AND item_id=?
-            """, (qty, user_id, item_id))
+                """,
+                (qty, user_id, item_id)
+            )
         else:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO Inventory (user_id, item_id, quantity)
                 VALUES (?, ?, ?)
-            """, (user_id, item_id, qty))
+                """,
+                (user_id, item_id, qty)
+            )
 
-    # 清除購物車
+    # 清除已結帳商品
     cursor.execute(
         f"DELETE FROM Cart WHERE user_id=? AND item_id IN ({placeholders})",
         [user_id, *selected_items]
     )
 
+    # ⭐ 重新查詢最新餘額（關鍵）
+    cursor.execute("SELECT money FROM Users WHERE user_id=?", (user_id,))
+    new_money = cursor.fetchone()[0]
+
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "結帳完成"})
+    # ⭐ 回傳最新餘額給前端
+    return jsonify({
+        "message": "結帳完成",
+        "new_money": new_money
+    })
+
 
 # ============================================================
 # API：查詢訂單明細

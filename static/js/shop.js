@@ -1,3 +1,5 @@
+let itemsMap = {};
+
 // ================================
 // 讀取全部商品
 // ================================
@@ -44,8 +46,10 @@ async function applyFilter() {
 function renderItems(items) {
     const grid = document.getElementById("itemsGrid");
     grid.innerHTML = "";
+    itemsMap = {}; // 重建 map
 
     items.forEach(item => {
+        itemsMap[item.item_id] = item; // ★ 記住每個商品
         const card = document.createElement("div");
         card.className = "item-card";
 
@@ -112,10 +116,24 @@ async function addToCart(itemId) {
 function changeQty(itemId, delta) {
     const input = document.getElementById(`qty-${itemId}`);
     let value = parseInt(input.value) || 1;
+
+    const item = itemsMap[itemId];
+    if (!item) return;
+
     value += delta;
+
+    // 下限
     if (value < 1) value = 1;
+
+    // 上限（庫存）
+    if (value > item.stock) {
+        value = item.stock;
+        alert(`庫存不足，最多只能購買 ${item.stock} 件`);
+    }
+
     input.value = value;
 }
+
 
 // ================================
 // 「全部」與個別 checkbox 控制邏輯

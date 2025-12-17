@@ -143,6 +143,14 @@ useItemBtn.onclick = async () => {
         document.getElementById("stat-strength").textContent = data.stats.strength;
         document.getElementById("stat-intelligence").textContent = data.stats.intelligence;
         document.getElementById("stat-luck").textContent = data.stats.luck;
+            // 🎉 彩蛋條件
+        if (
+            data.stats.strength > 100 &&
+            data.stats.intelligence > 100 &&
+            data.stats.luck > 100
+        ) {
+            alert("恭喜宿主，您離神還有段距離，但離人很遠了");
+        }
     }
 
     // ⭐ 更新錢
