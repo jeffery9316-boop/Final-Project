@@ -6,6 +6,7 @@ body {
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
+    font-family: Arial, sans-serif;
 }
 
 /* 背景圖覆蓋整頁 */
@@ -26,7 +27,7 @@ body::before {
 
 /* 主內容區 */
 .content-area {
-    margin-left: 260px; /* sidebar 寬度 */
+    margin-left: 260px;
     padding: 30px;
     color: white;
 }
@@ -49,23 +50,53 @@ body::before {
     color: white;
     border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
 .detail-btn:hover {
     background: #45a049;
 }
 
-/* 訂單明細表格 */
+/* ===============================
+   訂單明細表格（重點修正區）
+================================ */
 .details-box table {
     width: 100%;
     margin-top: 10px;
     border-collapse: collapse;
-    background: rgba(255, 255, 255, 0.85);
+    table-layout: fixed; /* ⭐ 防止欄位亂跑 */
+    background: rgba(255, 255, 255, 0.9);
     color: black;
+    border-radius: 6px;
+    overflow: hidden;
 }
 
-.details-box th,
+/* 表頭 */
+.details-box th {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 10px;
+}
+
+/* 表格內容 */
 .details-box td {
-    border: 1px solid #ddd;
     padding: 8px;
+    text-align: center;
+}
+
+/* ⭐ 固定欄位寬度（解決左邊縫隙） */
+.details-box th:first-child,
+.details-box td:first-child {
+    width: 30%;
+}
+
+/* Zebra 條紋 */
+.details-box tr:nth-child(even) {
+    background: rgba(240, 240, 240, 0.9);
+}
+
+/* Hover 高亮 */
+.details-box tr:hover {
+    background: rgba(200, 230, 255, 0.9);
 }

@@ -338,7 +338,7 @@ def add_to_cart():
     return jsonify({"message": "加入購物車成功"})
 
 # ============================================================
-# API：查看購物車（含庫存）
+# API：查看購物車
 # ============================================================
 @app.route('/api/cart/view')
 def view_cart():
@@ -351,11 +351,11 @@ def view_cart():
 
     cursor.execute("""
         SELECT 
-            Items.item_id,
-            Items.name,
-            Items.price,
-            Items.image_path,
-            Items.stock,        -- ★ 加入庫存
+            Items.item_id, 
+            Items.name, 
+            Items.price, 
+            Items.image_path, 
+            Items.stock,        -- ⭐ 把庫存也抓出來
             Cart.quantity
         FROM Cart
         JOIN Items ON Cart.item_id = Items.item_id
@@ -372,11 +372,12 @@ def view_cart():
             "name": item[1],
             "price": item[2],
             "image_path": item[3],
-            "stock": item[4],      # ★ 新增：庫存
+            "stock": item[4],       # ⭐ 新增庫存
             "quantity": item[5]
         })
 
     return jsonify(cart)
+
 
 # ============================================================
 # API：移除購物車項目
@@ -400,8 +401,9 @@ def remove_from_cart():
 
     return jsonify({"message": "已移除商品"})
 
+
 # ============================================================
-# API：購物車調整數量（含庫存檢查）
+# API：購物車調整數量（含庫存檢查，自動修正）
 # ============================================================
 @app.route('/api/cart/update_quantity', methods=['POST'])
 def update_cart_quantity():
@@ -436,13 +438,9 @@ def update_cart_quantity():
 
     stock = row[0]
 
-    # ⭐ 上限檢查
+    # ⭐ 上限檢查 → 自動修正
     if quantity > stock:
-        conn.close()
-        return jsonify({
-            "error": "超過庫存上限",
-            "max_stock": stock
-        }), 400
+        quantity = stock
 
     # 更新購物車數量
     cursor.execute(
@@ -459,9 +457,9 @@ def update_cart_quantity():
 
     return jsonify({
         "message": "數量已更新",
-        "quantity": quantity
+        "quantity": quantity,
+        "max_stock": stock
     })
-
 
 # ============================================================
 # API：結帳（含寫入 Inventory，並回傳最新餘額）

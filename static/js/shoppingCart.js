@@ -47,6 +47,10 @@ async function loadCart() {
         `;
 
         container.appendChild(div);
+
+        // ⭐ 綁定手動輸入檢查
+        const input = div.querySelector(`#qty-${item.item_id}`);
+        input.addEventListener("input", () => validateQty(item.item_id));
     });
 
     updateTotal();
@@ -54,11 +58,11 @@ async function loadCart() {
 }
 
 // ================================
-// 修改數量（安全版，不會卡 1）
+// 修改數量（按鈕版，自動修正庫存上限）
 // ================================
 async function changeQty(itemId, delta) {
     const input = document.getElementById(`qty-${itemId}`);
-    let value = parseInt(input.value) || 1;
+    let value = parseInt(input.value, 10) || 1;
 
     const item = cartData.find(i => i.item_id === itemId);
     if (!item) return;
@@ -68,12 +72,9 @@ async function changeQty(itemId, delta) {
     // 下限
     if (value < 1) value = 1;
 
-    // 上限（只有在 stock 存在時才限制）
-    if (typeof item.stock === "number") {
-        if (value > item.stock) {
-            value = item.stock;
-            alert(`庫存不足，最多只能購買 ${item.stock} 件`);
-        }
+    // 上限
+    if (typeof item.stock === "number" && value > item.stock) {
+        value = item.stock;
     }
 
     input.value = value;
@@ -86,10 +87,41 @@ async function changeQty(itemId, delta) {
     await fetch("/api/cart/update_quantity", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            item_id: itemId,
-            quantity: value
-        })
+        body: JSON.stringify({ item_id: itemId, quantity: value })
+    });
+
+    updateTotal();
+}
+
+// ================================
+// 手動輸入檢查（自動修正庫存上限）
+// ================================
+async function validateQty(itemId) {
+    const input = document.getElementById(`qty-${itemId}`);
+    let value = parseInt(input.value, 10) || 1;
+
+    const item = cartData.find(i => i.item_id === itemId);
+    if (!item) return;
+
+    // 下限
+    if (value < 1) value = 1;
+
+    // 上限
+    if (typeof item.stock === "number" && value > item.stock) {
+        value = item.stock;
+    }
+
+    input.value = value;
+
+    // 更新小計
+    document.getElementById(`subtotal-${itemId}`).textContent =
+        item.price * value;
+
+    // 同步後端
+    await fetch("/api/cart/update_quantity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item_id: itemId, quantity: value })
     });
 
     updateTotal();
@@ -112,8 +144,7 @@ function updateTotal() {
         }
     });
 
-    document.getElementById("cartTotal").textContent =
-        `總金額：${total}`;
+    document.getElementById("cartTotal").textContent = `總金額：${total}`;
 }
 
 // ================================
